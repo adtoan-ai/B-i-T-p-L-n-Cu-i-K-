@@ -138,51 +138,49 @@
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-            <script>
-                $(function () {
-                    var timer = null;
+            $(function () {
+                var timer = null;
 
                 $.getJSON('/Cart/Count', function (res) {
                     $('#cartBadge').text(res.count);
-                    });
+                });
 
                 $('#searchBox').on('keyup', function () {
-                        var term = $(this).val();
-                clearTimeout(timer);
+                    var term = $(this).val();
+                    clearTimeout(timer);
 
-                if (term.length < 2) {
-                    $('#suggestBox').addClass('d-none').empty();
-                return;
-                        }
+                    if (term.length < 2) {
+                        $('#suggestBox').addClass('d-none').empty();
+                        return;
+                    }
 
-                timer = setTimeout(function () {
-                    $.getJSON('/Product/Suggest', { term: term }, function(data) {
-                        if (data.length === 0) {
-                            $('#suggestBox').addClass('d-none').empty();
-                            return;
-                        }
-                        var html = '';
-                        $.each(data, function(i, p) {
-                            html += '<a class="suggest-item" href="/Product/Details/' + p.id + '">' +
-                                '<img src="' + p.image + '" onerror="this.onerror=null;this.src=\'/images/no-image.png\';" />' +
-                                '<div><div class="suggest-name">' + p.name + '</div>' +
-                                '<div class="suggest-meta">' + p.brand + ' &bull; ' + p.price + '</div></div></a>';
+                    timer = setTimeout(function () {
+                        $.getJSON('/Product/Suggest', { term: term }, function (data) {
+                            if (data.length === 0) {
+                                $('#suggestBox').addClass('d-none').empty();
+                                return;
+                            }
+                            var html = '';
+                            $.each(data, function (i, p) {
+                                html += '<a class="suggest-item" href="/Product/Details/' + p.id + '">' +
+                                    '<img src="' + p.image + '" onerror="this.onerror=null;this.src=\'/images/no-image.png\';" />' +
+                                    '<div><div class="suggest-name">' + p.name + '</div>' +
+                                    '<div class="suggest-meta">' + p.brand + ' &bull; ' + p.price + '</div></div></a>';
+                            });
+                            $('#suggestBox').html(html).removeClass('d-none');
                         });
-                        $('#suggestBox').html(html).removeClass('d-none');
-                    });
-                        }, 300);
-                    });
+                    }, 300);
+                });
 
                 $(document).on('click', function (e) {
-                        if (!$(e.target).closest('.search-form').length) {
-                    $('#suggestBox').addClass('d-none');
-                        }
-                    });
+                    if (!$(e.target).closest('.search-form').length) {
+                        $('#suggestBox').addClass('d-none');
+                    }
                 });
+            });
     </script>
-    </script>
-<script src="~/js/site.js" asp-append-version="true"></script>
-<script src="~/js/chatbot.js" asp-append-version="true"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/chatbot.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

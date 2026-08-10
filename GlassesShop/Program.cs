@@ -1,10 +1,12 @@
-using System.Globalization;
 using GlassesShop.Data;
+using GlassesShop.Models;
+
 using GlassesShop.Repositories.Implementations;
 using GlassesShop.Repositories.Interfaces;
 using GlassesShop.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
+using System.Globalization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -55,6 +57,9 @@ builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 
 builder.Services.AddScoped<CartService>();
 builder.Services.AddScoped<OrderService>();
+builder.Services.AddScoped<MoMoService>();
+builder.Services.AddHttpClient();
+builder.Services.Configure<MoMoOptions>(builder.Configuration.GetSection("MoMo"));
 
 var app = builder.Build();
 
