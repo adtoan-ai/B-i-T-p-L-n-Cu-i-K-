@@ -1,0 +1,82 @@
+﻿@model OrderDetailVM
+@{
+    ViewData["Title"] = "Đang xử lý thanh toán MoMo";
+}
+
+<div class="container mt-4">
+    <div class="card gateway-card">
+        <div class="card-header text-center" style="background:linear-gradient(120deg,#a50064,#d82d8b)">
+            <h5 class="mb-0 text-white"><i class="bi bi-wallet2 me-2"></i>THANH TOÁN QUA VÍ MOMO (SANDBOX)</h5>
+        </div>
+        <div class="card-body p-4">
+            <div class="alert alert-info small text-center">
+                <i class="bi bi-flask me-1"></i>
+                <b>Môi trường Sandbox:</b> đây là môi trường thử nghiệm của MoMo, không phát sinh giao dịch tiền thật.
+                Dùng ứng dụng <b>"MoMo Test"</b> (tải riêng trên App Store/Google Play) hoặc tài khoản test do MoMo cấp để thanh toán.
+            </div>
+
+            <div class="text-center mb-4">
+                <div class="small text-muted">Số tiền đơn hàng</div>
+                <h2 class="price-text fw-bold">@Model.TotalAmount.ToVnd()</h2>
+                <div class="small">Đơn hàng <strong>#@Model.OrderID</strong></div>
+            </div>
+
+            <div id="waitingBox" class="text-center py-4">
+                <div class="spinner-border text-primary mb-3" role="status" style="width:3rem;height:3rem"></div>
+                <h5>Đang chờ xác nhận từ MoMo...</h5>
+                <p class="text-muted mb-0">
+                    Nếu bạn đã hoàn tất thanh toán trên MoMo mà trang chưa tự chuyển,
+                    vui lòng bấm nút bên dưới để kiểm tra lại.
+                </p>
+            </div>
+
+            <div id="successBox" class="text-center py-4 d-none">
+                <i class="bi bi-check-circle-fill text-success" style="font-size:3rem"></i>
+                <h4 class="text-success mt-2">Thanh toán thành công!</h4>
+                <p class="text-muted mb-0">Đơn hàng của bạn đã được ghi nhận, đang chuyển hướng...</p>
+            </div>
+
+            <div class="d-grid mt-3">
+                <button type="button" id="recheckBtn" class="btn btn-outline-primary">
+                    <i class="bi bi-arrow-clockwise me-1"></i>Kiểm tra lại trạng thái thanh toán
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        var momoOrderId = @Model.OrderID;
+        var momoPaymentStatus = '@Model.PaymentStatus';
+        var momoChecking = false;
+
+        function checkMomoPaymentStatus() {
+            if (momoChecking || momoPaymentStatus === 'Đã thanh toán') return;
+            momoChecking = true;
+
+            $.getJSON('/Checkout/CheckPaymentStatus', { orderId: momoOrderId })
+                .done(function (res) {
+                    if (res.paymentStatus === 'Đã thanh toán') {
+                        momoPaymentStatus = res.paymentStatus;
+                        $('#waitingBox').addClass('d-none');
+                        $('#recheckBtn').addClass('d-none');
+                        $('#successBox').removeClass('d-none');
+
+                        setTimeout(function () {
+                            window.location.href = '/Checkout/Success/' + momoOrderId;
+                        }, 1500);
+                    }
+                })
+                .always(function () {
+                    momoChecking = false;
+                });
+        }
+
+        setInterval(checkMomoPaymentStatus, 3000);
+
+        $('#recheckBtn').on('click', function () {
+            checkMomoPaymentStatus();
+        });
+    </script>
+}

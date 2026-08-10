@@ -1,0 +1,19 @@
+﻿@{
+    ViewData["Title"] = "Không tìm thấy trang";
+}
+
+<div class="container text-center py-5">
+    <h1 class="display-1 fw-bold text-primary">404</h1>
+    <h4 class="mb-3">Rất tiếc, trang bạn tìm không tồn tại</h4>
+    <p class="text-muted">
+        Có thể đường dẫn đã bị thay đổi hoặc sản phẩm không còn kinh doanh.
+    </p>
+    <div class="d-flex gap-2 justify-content-center mt-3">
+        <a asp-controller="Home" asp-action="Index" class="btn btn-primary">
+            <i class="bi bi-house me-1"></i>Về trang chủ
+        </a>
+        <a asp-controller="Product" asp-action="Index" class="btn btn-outline-secondary">
+            Xem sản phẩm
+        </a>
+    </div>
+</div>

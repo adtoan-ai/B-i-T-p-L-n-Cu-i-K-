@@ -1,0 +1,94 @@
+﻿@using GlassesShop.Services
+@model OrderDetailVM
+@{
+    ViewData["Title"] = "Đặt hàng thành công";
+}
+
+<div class="container mt-4">
+    <div class="card p-4 text-center mb-4">
+        <i class="bi bi-check-circle-fill display-1 text-success"></i>
+        <h3 class="mt-3 fw-bold">ĐẶT HÀNG THÀNH CÔNG!</h3>
+        <p class="text-muted mb-1">Cảm ơn bạn đã mua sắm tại Kính Thời Trang Shop.</p>
+        <p class="mb-0">Mã đơn hàng của bạn: <strong class="fs-5">#@Model.OrderID</strong></p>
+    </div>
+
+    <div class="card">
+        <div class="card-header fw-bold d-flex justify-content-between align-items-center">
+            <span>THÔNG TIN ĐƠN HÀNG</span>
+            <span class="badge @OrderService.GetStatusBadgeClass(Model.OrderStatus)">@Model.OrderStatus</span>
+        </div>
+        <div class="card-body">
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <p class="mb-1"><span class="text-muted">Người nhận:</span> <strong>@Model.ReceiverName</strong></p>
+                    <p class="mb-1"><span class="text-muted">Điện thoại:</span> <strong>@Model.ReceiverPhone</strong></p>
+                    <p class="mb-1"><span class="text-muted">Địa chỉ:</span> @Model.ShippingAddress</p>
+                    @if (!string.IsNullOrEmpty(Model.Note))
+                    {
+                        <p class="mb-1"><span class="text-muted">Ghi chú:</span> @Model.Note</p>
+                    }
+                </div>
+                <div class="col-md-6">
+                    <p class="mb-1"><span class="text-muted">Ngày đặt:</span> @Model.OrderDate.ToString("dd/MM/yyyy HH:mm")</p>
+                    <p class="mb-1"><span class="text-muted">Thanh toán:</span> <strong>@Model.PaymentMethod</strong></p>
+                    <p class="mb-1">
+                        <span class="text-muted">Trạng thái TT:</span>
+                        <span class="badge @OrderService.GetPaymentBadgeClass(Model.PaymentStatus)">@Model.PaymentStatus</span>
+                    </p>
+                    @if (!string.IsNullOrEmpty(Model.TransactionCode))
+                    {
+                        <p class="mb-1"><span class="text-muted">Mã giao dịch:</span> <code>@Model.TransactionCode</code></p>
+                    }
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Sản phẩm</th>
+                            <th class="text-center">Đơn giá</th>
+                            <th class="text-center">SL</th>
+                            <th class="text-end">Thành tiền</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.Items)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <img src="@item.ImageUrl" class="cart-thumb"
+                                             onerror="this.src='/images/no-image.png'" />
+                                        <div>
+                                            <div class="fw-semibold">@item.ProductName</div>
+                                            <div class="small text-muted">@item.BrandName &bull; Màu: @item.Color</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="text-center">@item.UnitPrice.ToVnd()</td>
+                                <td class="text-center">@item.Quantity</td>
+                                <td class="text-end fw-bold">@item.SubTotal.ToVnd()</td>
+                            </tr>
+                        }
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="3" class="text-end fw-bold">TỔNG CỘNG</td>
+                            <td class="text-end fs-5 price-text fw-bold">@Model.TotalAmount.ToVnd()</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            <div class="d-flex gap-2 justify-content-center mt-3">
+                <a asp-controller="Order" asp-action="Details" asp-route-id="@Model.OrderID" class="btn btn-primary">
+                    <i class="bi bi-eye me-1"></i>Theo dõi đơn hàng
+                </a>
+                <a asp-controller="Product" asp-action="Index" class="btn btn-outline-secondary">
+                    Tiếp tục mua sắm
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,68 @@
+﻿@model HomeVM
+@{
+    ViewData["Title"] = "Trang chủ";
+}
+
+<div class="hero-banner text-center">
+    <div class="container">
+        <h1 class="display-5 fw-bold">KÍNH THỜI TRANG SHOP</h1>
+        <p class="lead">Kính mắt chính hãng &mdash; Ray-Ban, Gucci, Oakley, Molsion</p>
+        <a asp-controller="Product" asp-action="Index" class="btn btn-light btn-lg mt-2">
+            <i class="bi bi-bag me-1"></i>Mua sắm ngay
+        </a>
+    </div>
+</div>
+
+<div class="container mt-5">
+    <div class="row g-3 mb-5">
+        <div class="col-md-4">
+            <div class="feature-box">
+                <i class="bi bi-patch-check-fill"></i>
+                <h6 class="mt-2 mb-1">Hàng chính hãng</h6>
+                <p class="small text-muted mb-0">Cam kết 100% chính hãng</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="feature-box">
+                <i class="bi bi-truck"></i>
+                <h6 class="mt-2 mb-1">Giao hàng toàn quốc</h6>
+                <p class="small text-muted mb-0">Nhận hàng trong 2-5 ngày</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="feature-box">
+                <i class="bi bi-arrow-repeat"></i>
+                <h6 class="mt-2 mb-1">Đổi trả 7 ngày</h6>
+                <p class="small text-muted mb-0">Miễn phí đổi trả lỗi NSX</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="section-title mb-0">SẢN PHẨM MỚI NHẤT</h4>
+        <a asp-controller="Product" asp-action="Index" class="btn btn-sm btn-outline-dark">Xem tất cả</a>
+    </div>
+
+    <div class="row g-4">
+        @foreach (var item in Model.LatestProducts)
+        {
+            <div class="col-6 col-md-4 col-lg-3">
+                <partial name="_ProductCard" model="item" />
+            </div>
+        }
+    </div>
+
+    <h4 class="section-title mt-5 mb-3">THƯƠNG HIỆU</h4>
+    <div class="row g-3">
+        @foreach (var brand in Model.Brands)
+        {
+            <div class="col-6 col-md-3">
+                <a class="brand-box d-block text-center text-decoration-none"
+                   asp-controller="Product" asp-action="Index" asp-route-brandId="@brand.BrandID">
+                    <i class="bi bi-eyeglasses fs-2 d-block"></i>
+                    <span class="fw-semibold">@brand.BrandName</span>
+                </a>
+            </div>
+        }
+    </div>
+</div>

@@ -1,0 +1,95 @@
+﻿@model List<ProductVariant>
+@{
+    ViewData["Title"] = "Biến thể sản phẩm";
+    var productId = (int)ViewBag.ProductID;
+}
+
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <div>
+        <h1 class="page-title mb-0">BIẾN THỂ SẢN PHẨM</h1>
+        <div class="text-muted">@ViewBag.ProductName</div>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-controller="Product" asp-action="Index" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left me-1"></i>Danh sách SP
+        </a>
+        <a asp-action="Create" asp-route-productId="@productId" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-lg me-1"></i>Thêm biến thể
+        </a>
+    </div>
+</div>
+
+<div class="card admin-card mt-3">
+    <div class="table-responsive">
+        <table class="table admin-table mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th style="width:70px">Ảnh</th>
+                    <th>Màu sắc</th>
+                    <th class="text-end">Giá bán</th>
+                    <th class="text-center">Tồn kho</th>
+                    <th class="text-center">Số ảnh</th>
+                    <th class="text-center">Trạng thái</th>
+                    <th class="text-end" style="width:130px">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Count == 0)
+                {
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">
+                            Sản phẩm chưa có biến thể nào. Hãy thêm ít nhất 1 màu để hiển thị ngoài website.
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var v in Model)
+                    {
+                        var mainImage = v.Images.OrderByDescending(i => i.IsMain).FirstOrDefault()?.ImageUrl
+                                        ?? "/images/no-image.png";
+                        <tr>
+                            <td>
+                                <img src="@mainImage" class="admin-thumb"
+                                     onerror="this.src='/images/no-image.png'" />
+                            </td>
+                            <td class="fw-semibold">@v.Color</td>
+                            <td class="text-end fw-semibold price-text">@v.Price.ToVnd()</td>
+                            <td class="text-center">
+                                <span class="badge @(v.StockQuantity > 5 ? "bg-success" : "bg-danger")">@v.StockQuantity</span>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge bg-secondary">@v.Images.Count</span>
+                            </td>
+                            <td class="text-center">
+                                @if (v.IsActive)
+                                {
+                                    <span class="badge bg-success">Đang bán</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Ngừng bán</span>
+                                }
+                            </td>
+                            <td class="text-end text-nowrap">
+                                <a class="btn btn-sm btn-outline-primary"
+                                   asp-action="Edit" asp-route-id="@v.VariantID" title="Sửa & quản lý ảnh">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <form asp-action="Delete" method="post" class="d-inline"
+                                      onsubmit="return confirm('Xóa biến thể màu @v.Color?');">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@v.VariantID" />
+                                    <input type="hidden" name="productId" value="@productId" />
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

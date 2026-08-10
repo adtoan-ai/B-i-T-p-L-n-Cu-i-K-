@@ -1,0 +1,151 @@
+﻿@using GlassesShop.Services
+@model OrderDetailVM
+@{
+    ViewData["Title"] = $"Đơn hàng #{Model.OrderID}";
+    var steps = new[] { "Chờ xác nhận", "Đã xác nhận", "Đang giao", "Đã giao" };
+    var currentIndex = Array.IndexOf(steps, Model.OrderStatus);
+    var isCancelled = Model.OrderStatus == "Đã hủy";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="section-title mb-0">CHI TIẾT ĐƠN HÀNG #@Model.OrderID</h4>
+        <a asp-action="Index" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i>Danh sách đơn
+        </a>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            @if (isCancelled)
+            {
+                <div class="alert alert-danger mb-0 text-center">
+                    <i class="bi bi-x-octagon me-1"></i>
+                    Đơn hàng này đã bị hủy. Sản phẩm đã được hoàn lại kho.
+                </div>
+            }
+            else
+            {
+                <div class="order-steps">
+                    @for (int i = 0; i < steps.Length; i++)
+                    {
+                        <div class="step @(i <= currentIndex ? "done" : "")">
+                            <div class="step-dot">@(i + 1)</div>
+                            <div class="step-label">@steps[i]</div>
+                        </div>
+                        @if (i < steps.Length - 1)
+                        {
+                            <div class="step-line @(i < currentIndex ? "done" : "")"></div>
+                        }
+                    }
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header fw-bold">SẢN PHẨM ĐÃ ĐẶT</div>
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Sản phẩm</th>
+                                <th class="text-center">Đơn giá</th>
+                                <th class="text-center">SL</th>
+                                <th class="text-end">Thành tiền</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.Items)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <img src="@item.ImageUrl" class="cart-thumb"
+                                                 onerror="this.src='/images/no-image.png'" />
+                                            <div>
+                                                <a class="fw-semibold text-dark text-decoration-none"
+                                                   asp-controller="Product" asp-action="Details" asp-route-id="@item.ProductID">
+                                                    @item.ProductName
+                                                </a>
+                                                <div class="small text-muted">@item.BrandName &bull; Màu: @item.Color</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="text-center">@item.UnitPrice.ToVnd()</td>
+                                    <td class="text-center">@item.Quantity</td>
+                                    <td class="text-end fw-bold">@item.SubTotal.ToVnd()</td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="3" class="text-end fw-bold">TỔNG CỘNG</td>
+                                <td class="text-end fs-5 price-text fw-bold">@Model.TotalAmount.ToVnd()</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card mb-3">
+                <div class="card-header fw-bold">THÔNG TIN GIAO HÀNG</div>
+                <div class="card-body">
+                    <p class="mb-1"><span class="text-muted">Người nhận:</span> <strong>@Model.ReceiverName</strong></p>
+                    <p class="mb-1"><span class="text-muted">Điện thoại:</span> @Model.ReceiverPhone</p>
+                    <p class="mb-1"><span class="text-muted">Địa chỉ:</span> @Model.ShippingAddress</p>
+                    @if (!string.IsNullOrEmpty(Model.Note))
+                    {
+                        <p class="mb-1"><span class="text-muted">Ghi chú:</span> @Model.Note</p>
+                    }
+                    <p class="mb-0"><span class="text-muted">Ngày đặt:</span> @Model.OrderDate.ToString("dd/MM/yyyy HH:mm")</p>
+                </div>
+            </div>
+
+            <div class="card mb-3">
+                <div class="card-header fw-bold">THANH TOÁN</div>
+                <div class="card-body">
+                    <p class="mb-1"><span class="text-muted">Phương thức:</span> <strong>@Model.PaymentMethod</strong></p>
+                    <p class="mb-1">
+                        <span class="text-muted">Trạng thái:</span>
+                        <span class="badge @OrderService.GetPaymentBadgeClass(Model.PaymentStatus)">@Model.PaymentStatus</span>
+                    </p>
+                    @if (!string.IsNullOrEmpty(Model.TransactionCode))
+                    {
+                        <p class="mb-1"><span class="text-muted">Mã GD:</span> <code>@Model.TransactionCode</code></p>
+                    }
+                    @if (Model.PaidAt.HasValue)
+                    {
+                        <p class="mb-0"><span class="text-muted">Thời gian TT:</span> @Model.PaidAt.Value.ToString("dd/MM/yyyy HH:mm")</p>
+                    }
+                </div>
+            </div>
+
+            @if (Model.CanCancel)
+            {
+                <form asp-action="Cancel" asp-route-id="@Model.OrderID" method="post"
+                      onsubmit="return confirm('Bạn chắc chắn muốn hủy đơn hàng này?');">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-outline-danger w-100">
+                        <i class="bi bi-x-circle me-1"></i>Hủy đơn hàng
+                    </button>
+                </form>
+            }
+
+            @if (Model.PaymentMethod == "Chuyển khoản"
+                && Model.PaymentStatus != "Đã thanh toán"
+                && Model.PaymentStatus != "Đã hoàn tiền"
+                && !isCancelled)
+            {
+                <a asp-controller="Checkout" asp-action="PaymentGateway" asp-route-id="@Model.OrderID"
+                   class="btn btn-success w-100 mt-2">
+                    <i class="bi bi-credit-card me-1"></i>Thanh toán lại
+                </a>
+            }
+        </div>
+    </div>
+</div>

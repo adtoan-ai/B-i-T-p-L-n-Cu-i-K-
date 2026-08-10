@@ -1,0 +1,157 @@
+﻿@model ProductDetailVM
+@{
+    ViewData["Title"] = Model.ProductName;
+    var firstVariant = Model.Variants.FirstOrDefault();
+}
+
+<div class="container mt-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Trang chủ</a></li>
+            <li class="breadcrumb-item"><a asp-controller="Product" asp-action="Index">Sản phẩm</a></li>
+            <li class="breadcrumb-item active">@Model.ProductName</li>
+        </ol>
+    </nav>
+
+    <div class="card p-4">
+        <div class="row g-4">
+            <div class="col-md-6">
+                <img id="mainImage" src="@(firstVariant?.ImageUrls.FirstOrDefault() ?? "/images/no-image.png")"
+                     class="img-fluid rounded main-detail-image" alt="@Model.ProductName"
+                     onerror="this.onerror=null;this.src='/images/no-image.png';" />
+                <div class="d-flex gap-2 mt-3 flex-wrap" id="thumbList"></div>
+            </div>
+
+            <div class="col-md-6">
+                <h3 class="fw-bold">@Model.ProductName</h3>
+                <p class="text-muted mb-2">
+                    Thương hiệu: <strong>@Model.BrandName</strong> |
+                    Danh mục: <strong>@Model.CategoryName</strong>
+                </p>
+
+                <h2 class="price-text my-3" id="variantPrice">@(firstVariant?.Price.ToVnd() ?? "Liên hệ")</h2>
+
+                <p class="mb-1">Kiểu dáng: <strong>@Model.Style</strong></p>
+                <p class="mb-3">Chất liệu: <strong>@(Model.Material ?? "Đang cập nhật")</strong></p>
+
+                @if (Model.Variants.Count == 0)
+                {
+                    <div class="alert alert-secondary">Sản phẩm hiện chưa có biến thể nào.</div>
+                }
+                else
+                {
+                    <form asp-controller="Cart" asp-action="AddToCart" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="variantId" id="selectedVariantId" value="@firstVariant?.VariantID" />
+                        <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Màu sắc:</label>
+                            <div class="d-flex flex-wrap gap-2">
+                                @foreach (var v in Model.Variants)
+                                {
+                                    <button type="button"
+                                            class="btn btn-outline-dark btn-sm variant-btn @(v.VariantID == firstVariant?.VariantID ? "active" : "")"
+                                            data-variant-id="@v.VariantID"
+                                            data-price="@v.Price.ToVnd()"
+                                            data-stock="@v.StockQuantity"
+                                            data-images='@Html.Raw(System.Text.Json.JsonSerializer.Serialize(v.ImageUrls))'>
+                                        @v.Color
+                                    </button>
+                                }
+                            </div>
+                        </div>
+
+                        <p class="mb-3">
+                            Tình trạng:
+                            <span id="stockText" class="fw-semibold">
+                                @(firstVariant != null && firstVariant.StockQuantity > 0
+                                    ? $"Còn {firstVariant.StockQuantity} sản phẩm" : "Hết hàng")
+                            </span>
+                        </p>
+
+                        <div class="row g-2 align-items-end mb-3">
+                            <div class="col-4 col-md-3">
+                                <label class="form-label fw-semibold">Số lượng</label>
+                                <input type="number" name="quantity" id="quantityInput"
+                                       class="form-control" value="1" min="1" max="@(firstVariant?.StockQuantity ?? 1)" />
+                            </div>
+                            <div class="col-8 col-md-9">
+                                <button type="submit" class="btn btn-primary w-100" id="addToCartBtn">
+                                    <i class="bi bi-cart-plus me-1"></i>Thêm vào giỏ hàng
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                }
+
+                <hr />
+                <h6 class="fw-bold">Mô tả sản phẩm</h6>
+                <p class="text-muted">@(Model.Description ?? "Đang cập nhật.")</p>
+            </div>
+        </div>
+    </div>
+
+    @if (Model.RelatedProducts.Count > 0)
+    {
+        <h5 class="section-title mt-5 mb-3">SẢN PHẨM CÙNG THƯƠNG HIỆU</h5>
+        <div class="row g-4">
+            @foreach (var item in Model.RelatedProducts)
+            {
+                <div class="col-6 col-md-3">
+                    <partial name="_ProductCard" model="item" />
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        $(function() {
+            function renderThumbs(images) {
+                var html = '';
+                $.each(images, function(i, url) {
+                    html += '<img src="' + url + '" class="thumb-image' + (i === 0 ? ' active' : '') +
+                        '" onerror="this.onerror=null;this.src=\'/images/no-image.png\';" />';
+                });
+                $('#thumbList').html(html);
+            }
+
+            var firstBtn = $('.variant-btn.active').first();
+            if (firstBtn.length) {
+                renderThumbs(firstBtn.data('images'));
+            }
+
+            $('.variant-btn').on('click', function() {
+                var btn = $(this);
+                $('.variant-btn').removeClass('active');
+                btn.addClass('active');
+
+                var images = btn.data('images');
+                var stock = parseInt(btn.data('stock'));
+
+                $('#selectedVariantId').val(btn.data('variant-id'));
+                $('#variantPrice').text(btn.data('price'));
+                $('#mainImage').attr('src', images[0]);
+                renderThumbs(images);
+
+                if (stock > 0) {
+                    $('#stockText').text('Còn ' + stock + ' sản phẩm').removeClass('text-danger');
+                    $('#quantityInput').attr('max', stock).val(1).prop('disabled', false);
+                    $('#addToCartBtn').prop('disabled', false);
+                } else {
+                    $('#stockText').text('Hết hàng').addClass('text-danger');
+                    $('#quantityInput').val(0).prop('disabled', true);
+                    $('#addToCartBtn').prop('disabled', true);
+                }
+            });
+
+            $(document).on('click', '.thumb-image', function() {
+                $('.thumb-image').removeClass('active');
+                $(this).addClass('active');
+                $('#mainImage').attr('src', $(this).attr('src'));
+            });
+        });
+    </script>
+}

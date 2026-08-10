@@ -1,0 +1,92 @@
+﻿@model ProfileVM
+@{
+    ViewData["Title"] = "Tài khoản của tôi";
+}
+
+<div class="container mt-4">
+    <h4 class="section-title mb-3">TÀI KHOẢN CỦA TÔI</h4>
+
+    <div class="row g-3">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header fw-bold">
+                    <i class="bi bi-person-gear me-1"></i>THÔNG TIN CÁ NHÂN
+                </div>
+                <div class="card-body">
+                    <form asp-action="Index" method="post">
+                        @Html.AntiForgeryToken()
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 d-none"></div>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label asp-for="Username" class="form-label"></label>
+                                <input asp-for="Username" class="form-control" readonly disabled />
+                                <div class="form-text">Tên đăng nhập không thể thay đổi</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="FullName" class="form-label"></label>
+                                <input asp-for="FullName" class="form-control" />
+                                <span asp-validation-for="FullName" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="NumberPhone" class="form-label"></label>
+                                <input asp-for="NumberPhone" class="form-control" />
+                                <span asp-validation-for="NumberPhone" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Email" class="form-label"></label>
+                                <input asp-for="Email" class="form-control" />
+                                <span asp-validation-for="Email" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Gender" class="form-label"></label>
+                                <select asp-for="Gender" class="form-select">
+                                    <option value="Nam">Nam</option>
+                                    <option value="Nữ">Nữ</option>
+                                </select>
+                                <span asp-validation-for="Gender" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="DateOfBirth" class="form-label"></label>
+                                <input asp-for="DateOfBirth" type="date" class="form-control" />
+                            </div>
+                            <div class="col-12">
+                                <label asp-for="Address" class="form-label"></label>
+                                <textarea asp-for="Address" class="form-control" rows="2"></textarea>
+                                <span asp-validation-for="Address" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary mt-3">
+                            <i class="bi bi-save me-1"></i>Lưu thay đổi
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header fw-bold">
+                    <i class="bi bi-shield-lock me-1"></i>BẢO MẬT
+                </div>
+                <div class="card-body">
+                    <p class="text-muted small">
+                        Nên đổi mật khẩu định kỳ để bảo vệ tài khoản của bạn.
+                    </p>
+                    <a asp-action="ChangePassword" class="btn btn-outline-primary w-100">
+                        <i class="bi bi-key me-1"></i>Đổi mật khẩu
+                    </a>
+                    <hr />
+                    <a asp-controller="Order" asp-action="Index" class="btn btn-outline-secondary w-100">
+                        <i class="bi bi-bag-check me-1"></i>Đơn hàng của tôi
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

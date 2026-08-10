@@ -1,0 +1,164 @@
+﻿@model ProductListVM
+@{
+    ViewData["Title"] = "Danh sách sản phẩm";
+    var f = Model.Filter;
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-lg-3 mb-4">
+            <div class="card filter-card">
+                <div class="card-header fw-bold">
+                    <i class="bi bi-funnel me-1"></i>BỘ LỌC
+                </div>
+                <div class="card-body">
+                    <form asp-action="Index" method="get" id="filterForm">
+                        <input type="hidden" name="Keyword" value="@f.Keyword" />
+                        <input type="hidden" name="SortBy" value="@f.SortBy" />
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Danh mục</label>
+                            <select name="CategoryId" class="form-select form-select-sm">
+                                <option value="">-- Tất cả --</option>
+                                @foreach (var c in Model.Categories)
+                                {
+                                    <option value="@c.CategoryID" selected="@(f.CategoryId == c.CategoryID)">@c.CategoryName</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Thương hiệu</label>
+                            <select name="BrandId" class="form-select form-select-sm">
+                                <option value="">-- Tất cả --</option>
+                                @foreach (var b in Model.Brands)
+                                {
+                                    <option value="@b.BrandID" selected="@(f.BrandId == b.BrandID)">@b.BrandName</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Kiểu dáng</label>
+                            <select name="Style" class="form-select form-select-sm">
+                                <option value="">-- Tất cả --</option>
+                                @foreach (var s in Model.Styles)
+                                {
+                                    <option value="@s" selected="@(f.Style == s)">@s</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Màu sắc</label>
+                            <select name="Color" class="form-select form-select-sm">
+                                <option value="">-- Tất cả --</option>
+                                @foreach (var color in Model.Colors)
+                                {
+                                    <option value="@color" selected="@(f.Color == color)">@color</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Khoảng giá (₫)</label>
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <input type="number" name="MinPrice" class="form-control form-control-sm"
+                                           placeholder="Từ" min="0" step="100000" value="@f.MinPrice" />
+                                </div>
+                                <div class="col-6">
+                                    <input type="number" name="MaxPrice" class="form-control form-control-sm"
+                                           placeholder="Đến" min="0" step="100000" value="@f.MaxPrice" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-sm">Áp dụng lọc</button>
+                            <a asp-action="Index" class="btn btn-outline-secondary btn-sm">Xoá bộ lọc</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-9">
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+                <div>
+                    <h5 class="mb-0">
+                        @if (!string.IsNullOrWhiteSpace(f.Keyword))
+                        {
+                            <span>Kết quả cho: <em>"@f.Keyword"</em></span>
+                        }
+                        else
+                        {
+                            <span>Tất cả sản phẩm</span>
+                        }
+                    </h5>
+                    <small class="text-muted">Tìm thấy @Model.TotalItems sản phẩm</small>
+                </div>
+
+                <form asp-action="Index" method="get" class="d-flex align-items-center">
+                    <input type="hidden" name="Keyword" value="@f.Keyword" />
+                    <input type="hidden" name="CategoryId" value="@f.CategoryId" />
+                    <input type="hidden" name="BrandId" value="@f.BrandId" />
+                    <input type="hidden" name="Style" value="@f.Style" />
+                    <input type="hidden" name="Color" value="@f.Color" />
+                    <input type="hidden" name="MinPrice" value="@f.MinPrice" />
+                    <input type="hidden" name="MaxPrice" value="@f.MaxPrice" />
+                    <label class="me-2 small text-nowrap">Sắp xếp:</label>
+                    <select name="SortBy" class="form-select form-select-sm" onchange="this.form.submit()">
+                        <option value="newest" selected="@(f.SortBy == "newest")">Mới nhất</option>
+                        <option value="price_asc" selected="@(f.SortBy == "price_asc")">Giá tăng dần</option>
+                        <option value="price_desc" selected="@(f.SortBy == "price_desc")">Giá giảm dần</option>
+                        <option value="name_asc" selected="@(f.SortBy == "name_asc")">Tên A-Z</option>
+                    </select>
+                </form>
+            </div>
+
+            @if (Model.Products.Count == 0)
+            {
+                <div class="alert alert-warning text-center py-5">
+                    <i class="bi bi-search display-6 d-block mb-2"></i>
+                    Không tìm thấy sản phẩm nào phù hợp.
+                </div>
+            }
+            else
+            {
+                <div class="row g-4">
+                    @foreach (var item in Model.Products)
+                    {
+                        <div class="col-6 col-md-4">
+                            <partial name="_ProductCard" model="item" />
+                        </div>
+                    }
+                </div>
+
+                @if (Model.TotalPages > 1)
+                {
+                    <nav class="mt-4">
+                        <ul class="pagination justify-content-center">
+                            @for (int i = 1; i <= Model.TotalPages; i++)
+                            {
+                                <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                                    <a class="page-link"
+                                       asp-action="Index"
+                                       asp-route-Keyword="@f.Keyword"
+                                       asp-route-CategoryId="@f.CategoryId"
+                                       asp-route-BrandId="@f.BrandId"
+                                       asp-route-Style="@f.Style"
+                                       asp-route-Color="@f.Color"
+                                       asp-route-MinPrice="@f.MinPrice"
+                                       asp-route-MaxPrice="@f.MaxPrice"
+                                       asp-route-SortBy="@f.SortBy"
+                                       asp-route-Page="@i">@i</a>
+                                </li>
+                            }
+                        </ul>
+                    </nav>
+                }
+            }
+        </div>
+    </div>
+</div>

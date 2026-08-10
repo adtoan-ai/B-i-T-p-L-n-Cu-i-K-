@@ -1,0 +1,82 @@
+﻿@model List<Staff>
+@{
+    ViewData["Title"] = "Tài khoản nhân viên";
+}
+
+<div class="d-flex justify-content-between align-items-center">
+    <h1 class="page-title mb-0">TÀI KHOẢN NHÂN VIÊN</h1>
+    <a asp-action="Create" class="btn btn-primary btn-sm">
+        <i class="bi bi-person-plus me-1"></i>Thêm nhân viên
+    </a>
+</div>
+
+<div class="card admin-card mt-3">
+    <div class="table-responsive">
+        <table class="table admin-table mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>ID</th>
+                    <th>Tên đăng nhập</th>
+                    <th>Họ tên</th>
+                    <th>Điện thoại</th>
+                    <th>Email</th>
+                    <th class="text-center">Vai trò</th>
+                    <th class="text-center">Đơn phụ trách</th>
+                    <th class="text-center">Trạng thái</th>
+                    <th class="text-end" style="width:190px">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var s in Model)
+                {
+                    <tr>
+                        <td>@s.StaffID</td>
+                        <td class="fw-semibold">@s.Account.Username</td>
+                        <td>@s.FullName</td>
+                        <td>@s.NumberPhone</td>
+                        <td class="small">@s.Email</td>
+                        <td class="text-center">
+                            <span class="badge @(s.Account.Role == "Admin" ? "bg-danger" : "bg-info text-dark")">
+                                @s.Account.Role
+                            </span>
+                        </td>
+                        <td class="text-center">@s.Orders.Count</td>
+                        <td class="text-center">
+                            @if (s.Account.IsLocked)
+                            {
+                                <span class="badge bg-secondary">Đã khóa</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-success">Hoạt động</span>
+                            }
+                        </td>
+                        <td class="text-end text-nowrap">
+                            <a class="btn btn-sm btn-outline-primary"
+                               asp-action="Edit" asp-route-id="@s.StaffID" title="Sửa">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a class="btn btn-sm btn-outline-warning"
+                               asp-action="ResetPassword" asp-route-id="@s.StaffID" title="Đổi mật khẩu">
+                                <i class="bi bi-key"></i>
+                            </a>
+                            <form asp-action="ToggleLock" asp-route-id="@s.StaffID" method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-outline-secondary" title="Khóa/Mở khóa">
+                                    <i class="bi @(s.Account.IsLocked ? "bi-unlock" : "bi-lock")"></i>
+                                </button>
+                            </form>
+                            <form asp-action="Delete" asp-route-id="@s.StaffID" method="post" class="d-inline"
+                                  onsubmit="return confirm('Xóa tài khoản @s.Account.Username?');">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Xóa">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

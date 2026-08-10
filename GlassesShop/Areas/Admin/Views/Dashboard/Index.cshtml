@@ -1,0 +1,126 @@
+﻿@model DashboardVM
+@{
+    ViewData["Title"] = "Tổng quan";
+}
+
+<h1 class="page-title">TỔNG QUAN HỆ THỐNG</h1>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-6 col-xl-3">
+        <div class="stat-card">
+            <div class="stat-icon" style="background:#2563eb"><i class="bi bi-box-seam"></i></div>
+            <div>
+                <div class="stat-value">@Model.TotalProducts</div>
+                <div class="stat-label">Sản phẩm (@Model.TotalVariants biến thể)</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <div class="stat-card">
+            <div class="stat-icon" style="background:#059669"><i class="bi bi-receipt"></i></div>
+            <div>
+                <div class="stat-value">@Model.TotalOrders</div>
+                <div class="stat-label">Đơn hàng (@Model.PendingOrders chờ xác nhận)</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <div class="stat-card">
+            <div class="stat-icon" style="background:#d97706"><i class="bi bi-people"></i></div>
+            <div>
+                <div class="stat-value">@Model.TotalCustomers</div>
+                <div class="stat-label">Khách hàng (@Model.TotalStaffs nhân viên)</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <div class="stat-card">
+            <div class="stat-icon" style="background:#dc2626"><i class="bi bi-cash-stack"></i></div>
+            <div>
+                <div class="stat-value">@Model.TotalRevenue.ToVnd()</div>
+                <div class="stat-label">Doanh thu (đơn đã giao)</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-xl-8">
+        <div class="card admin-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>ĐƠN HÀNG GẦN ĐÂY</span>
+                <a asp-controller="Order" asp-action="Index" class="btn btn-sm btn-outline-primary">Xem tất cả</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table admin-table mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Mã</th>
+                            <th>Khách hàng</th>
+                            <th>Ngày đặt</th>
+                            <th class="text-end">Tổng tiền</th>
+                            <th class="text-center">Trạng thái</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.RecentOrders.Count == 0)
+                        {
+                            <tr><td colspan="6" class="text-center text-muted py-4">Chưa có đơn hàng nào</td></tr>
+                        }
+                        else
+                        {
+                            @foreach (var o in Model.RecentOrders)
+                            {
+                                <tr>
+                                    <td class="fw-bold">#@o.OrderID</td>
+                                    <td>@o.CustomerName</td>
+                                    <td class="small">@o.OrderDate.ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td class="text-end fw-semibold">@o.TotalAmount.ToVnd()</td>
+                                    <td class="text-center">
+                                        <span class="badge @OrderService.GetStatusBadgeClass(o.OrderStatus)">@o.OrderStatus</span>
+                                    </td>
+                                    <td class="text-end">
+                                        <a class="btn btn-sm btn-outline-secondary"
+                                           asp-controller="Order" asp-action="Details" asp-route-id="@o.OrderID">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-4">
+        <div class="card admin-card">
+            <div class="card-header">
+                <i class="bi bi-exclamation-triangle text-warning me-1"></i>SẮP HẾT HÀNG (≤ 5)
+            </div>
+            <div class="card-body p-0">
+                @if (Model.LowStockItems.Count == 0)
+                {
+                    <p class="text-muted text-center py-4 mb-0">Tồn kho đang ổn định</p>
+                }
+                else
+                {
+                    <ul class="list-group list-group-flush">
+                        @foreach (var item in Model.LowStockItems)
+                        {
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="small fw-semibold">@item.ProductName</div>
+                                    <div class="small text-muted">Màu: @item.Color</div>
+                                </div>
+                                <span class="badge bg-danger">@item.StockQuantity</span>
+                            </li>
+                        }
+                    </ul>
+                }
+            </div>
+        </div>
+    </div>
+</div>

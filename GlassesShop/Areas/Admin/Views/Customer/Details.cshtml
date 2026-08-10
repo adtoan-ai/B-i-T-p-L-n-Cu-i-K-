@@ -1,0 +1,93 @@
+﻿@model AdminCustomerVM
+@{
+    ViewData["Title"] = "Chi tiết khách hàng";
+    var orders = ViewBag.Orders as List<OrderListItemVM> ?? new List<OrderListItemVM>();
+}
+
+<div class="d-flex justify-content-between align-items-center">
+    <h1 class="page-title mb-0">KHÁCH HÀNG: @Model.FullName</h1>
+    <a asp-action="Index" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left me-1"></i>Danh sách
+    </a>
+</div>
+
+<div class="row g-3 mt-1">
+    <div class="col-lg-4">
+        <div class="card admin-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>THÔNG TIN</span>
+                @if (Model.IsLocked)
+                {
+                    <span class="badge bg-secondary">Đã khóa</span>
+                }
+                else
+                {
+                    <span class="badge bg-success">Hoạt động</span>
+                }
+            </div>
+            <div class="card-body">
+                <p class="mb-1"><span class="text-muted">Tên đăng nhập:</span> <strong>@Model.Username</strong></p>
+                <p class="mb-1"><span class="text-muted">Họ tên:</span> @Model.FullName</p>
+                <p class="mb-1"><span class="text-muted">Giới tính:</span> @Model.Gender</p>
+                <p class="mb-1"><span class="text-muted">Điện thoại:</span> @Model.NumberPhone</p>
+                <p class="mb-1"><span class="text-muted">Email:</span> @Model.Email</p>
+                <p class="mb-1"><span class="text-muted">Địa chỉ:</span> @(Model.Address ?? "Chưa cập nhật")</p>
+                <p class="mb-3"><span class="text-muted">Ngày tạo:</span> @Model.CreatedAt.ToString("dd/MM/yyyy")</p>
+
+                <form asp-action="ToggleLock" asp-route-id="@Model.CustomerID" method="post"
+                      onsubmit="return confirm('@(Model.IsLocked ? "Mở khóa" : "Khóa") tài khoản này?');">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn w-100 @(Model.IsLocked ? "btn-success" : "btn-outline-danger")">
+                        <i class="bi @(Model.IsLocked ? "bi-unlock" : "bi-lock") me-1"></i>
+                        @(Model.IsLocked ? "Mở khóa tài khoản" : "Khóa tài khoản")
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="card admin-card">
+            <div class="card-header">LỊCH SỬ ĐƠN HÀNG (@orders.Count)</div>
+            <div class="table-responsive">
+                <table class="table admin-table mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Mã đơn</th>
+                            <th>Ngày đặt</th>
+                            <th class="text-end">Tổng tiền</th>
+                            <th class="text-center">Trạng thái</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (orders.Count == 0)
+                        {
+                            <tr><td colspan="5" class="text-center text-muted py-4">Khách hàng chưa có đơn hàng nào</td></tr>
+                        }
+                        else
+                        {
+                            @foreach (var o in orders)
+                            {
+                                <tr>
+                                    <td class="fw-bold">#@o.OrderID</td>
+                                    <td class="small">@o.OrderDate.ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td class="text-end fw-semibold">@o.TotalAmount.ToVnd()</td>
+                                    <td class="text-center">
+                                        <span class="badge @OrderService.GetStatusBadgeClass(o.OrderStatus)">@o.OrderStatus</span>
+                                    </td>
+                                    <td class="text-end">
+                                        <a class="btn btn-sm btn-outline-primary"
+                                           asp-controller="Order" asp-action="Details" asp-route-id="@o.OrderID">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

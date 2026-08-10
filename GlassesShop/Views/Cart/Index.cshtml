@@ -1,0 +1,203 @@
+﻿@model CartVM
+@{
+    ViewData["Title"] = "Giỏ hàng";
+}
+
+<div class="container mt-4">
+    <h4 class="section-title mb-3">
+        GIỎ HÀNG @(Model.IsGuestCart ? "TẠM THỜI" : "CỦA TÔI")
+    </h4>
+
+    @if (Model.IsGuestCart && Model.Items.Count > 0)
+    {
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle me-1"></i>
+            Bạn đang dùng giỏ hàng tạm thời. Vui lòng
+            <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="/Cart" class="fw-bold">đăng nhập</a>
+            để lưu giỏ hàng và tiến hành đặt hàng.
+        </div>
+    }
+
+    @if (Model.Items.Count == 0)
+    {
+        <div class="card p-5 text-center">
+            <i class="bi bi-cart-x display-1 text-muted"></i>
+            <h5 class="mt-3">Giỏ hàng của bạn đang trống</h5>
+            <p class="text-muted">Hãy chọn cho mình một chiếc kính ưng ý nhé!</p>
+            <div>
+                <a asp-controller="Product" asp-action="Index" class="btn btn-primary">Tiếp tục mua sắm</a>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0 cart-table">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width:45%">Sản phẩm</th>
+                                    <th class="text-center">Đơn giá</th>
+                                    <th class="text-center" style="width:150px">Số lượng</th>
+                                    <th class="text-center">Thành tiền</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model.Items)
+                                {
+                                    <tr data-variant-id="@item.VariantID">
+                                        <td>
+                                            <div class="d-flex align-items-center gap-3">
+                                                <img src="@item.ImageUrl" class="cart-thumb"
+                                                     onerror="this.src='/images/no-image.png'" />
+                                                <div>
+                                                    <a class="fw-semibold text-dark text-decoration-none"
+                                                       asp-controller="Product" asp-action="Details" asp-route-id="@item.ProductID">
+                                                        @item.ProductName
+                                                    </a>
+                                                    <div class="small text-muted">
+                                                        @item.BrandName &bull; Màu: @item.Color
+                                                    </div>
+                                                    @if (!item.IsAvailable)
+                                                    {
+                                                        <span class="badge bg-danger mt-1">
+                                                            Không đủ hàng (còn @item.StockQuantity)
+                                                        </span>
+                                                    }
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="text-center">@item.UnitPrice.ToVnd()</td>
+                                        <td class="text-center">
+                                            <div class="input-group input-group-sm qty-group">
+                                                <button class="btn btn-outline-secondary btn-qty" data-step="-1" type="button">−</button>
+                                                <input type="number" class="form-control text-center qty-input"
+                                                       value="@item.Quantity" min="1" max="@item.StockQuantity" />
+                                                <button class="btn btn-outline-secondary btn-qty" data-step="1" type="button">+</button>
+                                            </div>
+                                        </td>
+                                        <td class="text-center fw-bold price-text sub-total">@item.SubTotal.ToVnd()</td>
+                                        <td class="text-center">
+                                            <form asp-action="Remove" method="post" onsubmit="return confirm('Xoá sản phẩm này khỏi giỏ hàng?');">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="variantId" value="@item.VariantID" />
+                                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between mt-3">
+                    <a asp-controller="Product" asp-action="Index" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-1"></i>Tiếp tục mua sắm
+                    </a>
+                    <form asp-action="Clear" method="post" onsubmit="return confirm('Xoá toàn bộ giỏ hàng?');">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-outline-danger">
+                            <i class="bi bi-trash me-1"></i>Xoá tất cả
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="card summary-card">
+                    <div class="card-header fw-bold">TỔNG ĐƠN HÀNG</div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Số lượng</span>
+                            <span id="summaryQuantity" class="fw-semibold">@Model.TotalQuantity sản phẩm</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Phí vận chuyển</span>
+                            <span class="text-success">Miễn phí</span>
+                        </div>
+                        <hr />
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span class="fw-bold">Tổng cộng</span>
+                            <span id="summaryTotal" class="fs-5 price-text">@Model.TotalAmount.ToVnd()</span>
+                        </div>
+
+                        @if (Model.HasInvalidItem)
+                        {
+                            <div class="alert alert-warning small py-2">
+                                Có sản phẩm không đủ hàng. Vui lòng giảm số lượng trước khi đặt hàng.
+                            </div>
+                        }
+
+                        @if (Model.IsGuestCart)
+                        {
+                            <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="/Cart"
+                               class="btn btn-warning w-100">
+                                <i class="bi bi-box-arrow-in-right me-1"></i>Đăng nhập để đặt hàng
+                            </a>
+                        }
+                        else
+                        {
+                            <a asp-controller="Checkout" asp-action="Index"
+                               class="btn btn-primary w-100 @(Model.HasInvalidItem ? "disabled" : "")">
+                                <i class="bi bi-credit-card me-1"></i>Tiến hành đặt hàng
+                            </a>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        $(function() {
+            var token = $('input[name="__RequestVerificationToken"]').first().val();
+
+            function updateQuantity(row, quantity) {
+                var variantId = row.data('variant-id');
+
+                $.post('/Cart/UpdateQuantity',
+                    { variantId: variantId, quantity: quantity, __RequestVerificationToken: token },
+                    function(res) {
+                        if (!res.success) {
+                            alert(res.message);
+                            row.find('.qty-input').val(res.quantity > 0 ? res.quantity : 1);
+                        } else {
+                            row.find('.sub-total').text(res.subTotal);
+                        }
+                        $('#summaryTotal').text(res.totalAmount);
+                        $('#summaryQuantity').text(res.totalQuantity + ' sản phẩm');
+                        $('#cartBadge').text(res.totalQuantity);
+                    });
+            }
+
+            $('.btn-qty').on('click', function() {
+                var row = $(this).closest('tr');
+                var input = row.find('.qty-input');
+                var step = parseInt($(this).data('step'));
+                var value = parseInt(input.val()) + step;
+
+                if (value < 1) value = 1;
+                input.val(value);
+                updateQuantity(row, value);
+            });
+
+            $('.qty-input').on('change', function() {
+                var row = $(this).closest('tr');
+                var value = parseInt($(this).val());
+                if (isNaN(value) || value < 1) {
+                    value = 1;
+                    $(this).val(1);
+                }
+                updateQuantity(row, value);
+            });
+        });
+    </script>
+}
